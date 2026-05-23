@@ -44,7 +44,6 @@ html, body {
   z-index: 5;
 }
 
-/* HOME BAR */
 #homeBarVisual {
   position: absolute;
   bottom: 8px;
@@ -217,11 +216,12 @@ overlay.addEventListener("click", () => {
   }
 });
 
-/* KEEP YOUR ORIGINAL STYLE URL */
+/* KEEP YOUR URL STYLE */
 function getURL(device, os) {
   return `https://appetize.io/embed/vhqck47rafavf76mxopgws2jie?device=${device}&osVersion=${os}&appearance=dark&audio=true&autoplay=true&scale=auto&centered=true&xdocMsg=true&launchApp=false&screenOnly=true&orientation=portrait`;
 }
 
+/* SDK WAIT */
 async function waitForSDK() {
   await new Promise(resolve => {
     if (window.appetize) resolve();
@@ -236,6 +236,23 @@ async function waitForSDK() {
   });
 }
 
+/* FULLSCREEN FUNCTION */
+async function tryFullscreen() {
+  try {
+    const el = document.documentElement;
+
+    if (document.fullscreenEnabled) {
+      await el.requestFullscreen();
+    } 
+    else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    }
+  } catch (e) {
+    console.log("Fullscreen blocked:", e);
+  }
+}
+
+/* LOAD EMULATOR */
 async function load(device, os) {
   iframe.src = getURL(device, os);
 
@@ -243,6 +260,11 @@ async function load(device, os) {
 
   const client = await window.appetize.getClient("#appetize-iframe");
   client.on("session", s => session = s);
+
+  // 🔥 auto fullscreen after load
+  setTimeout(() => {
+    tryFullscreen();
+  }, 600);
 }
 
 /* HOME BUTTON */
@@ -279,21 +301,7 @@ swipeZone.addEventListener("touchend", () => {
 });
 
 })();
-
-async function tryFullscreen() {
-  try {
-    const el = document.documentElement;
-
-    if (document.fullscreenEnabled) {
-      await el.requestFullscreen();
-    } 
-    else if (el.webkitRequestFullscreen) {
-      el.webkitRequestFullscreen();
-    }
-  } catch (e) {
-    console.log("Fullscreen blocked:", e);
-  }
-}
 </script>
+
 </body>
 </html>
