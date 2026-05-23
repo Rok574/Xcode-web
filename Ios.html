@@ -33,7 +33,7 @@ html, body {
   max-width: 100%;
 }
 
-/* Edge Swipe Zone (small, not blocking screen) */
+/* Edge Swipe Zone (still active) */
 #homeSwipeZone {
   position: absolute;
   bottom: 0;
@@ -43,7 +43,7 @@ html, body {
   z-index: 5;
 }
 
-/* Realistic Home Indicator */
+/* HOME BAR VISUAL (hidden but kept alive for animations) */
 #homeBarVisual {
   position: absolute;
   bottom: 8px;
@@ -52,9 +52,13 @@ html, body {
   width: 110px;
   height: 5px;
   border-radius: 3px;
-  background: rgba(255,255,255,0.85);
-  transition: transform 0.12s ease;
+
+  /* invisible but still exists */
+  background: rgba(255,255,255,0);
+  opacity: 0;
+
   pointer-events: none;
+  transition: transform 0.12s ease, opacity 0.2s ease;
 }
 
 /* Setup Overlay */
@@ -220,7 +224,7 @@ async function loadEmulator(device, os) {
   client.on("session", s => session = s);
 }
 
-/* Stable Edge Swipe */
+/* Swipe gesture still works */
 const swipeZone = document.getElementById("homeSwipeZone");
 const homeBar = document.getElementById("homeBarVisual");
 
