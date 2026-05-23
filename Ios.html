@@ -279,7 +279,21 @@ swipeZone.addEventListener("touchend", () => {
 });
 
 })();
-</script>
 
+async function tryFullscreen() {
+  try {
+    const el = document.documentElement;
+
+    if (document.fullscreenEnabled) {
+      await el.requestFullscreen();
+    } 
+    else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    }
+  } catch (e) {
+    console.log("Fullscreen blocked:", e);
+  }
+}
+</script>
 </body>
 </html>
