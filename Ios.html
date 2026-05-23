@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
 content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+
 <script src="https://js.appetize.io/embed.js"></script>
 
 <style>
@@ -16,7 +17,7 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Emulator */
+/* EMULATOR */
 #appetizeWrapper {
   width: 100%;
   height: 100vh;
@@ -33,7 +34,7 @@ html, body {
   max-width: 100%;
 }
 
-/* Edge Swipe Zone (still active) */
+/* SWIPE AREA */
 #homeSwipeZone {
   position: absolute;
   bottom: 0;
@@ -43,7 +44,7 @@ html, body {
   z-index: 5;
 }
 
-/* HOME BAR VISUAL (hidden but kept alive for animations) */
+/* HOME BAR */
 #homeBarVisual {
   position: absolute;
   bottom: 8px;
@@ -51,17 +52,14 @@ html, body {
   transform: translateX(-50%);
   width: 110px;
   height: 5px;
-  border-radius: 3px;
-
-  /* invisible but still exists */
-  background: rgba(255,255,255,0);
-  opacity: 0;
-
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  opacity: 0.7;
   pointer-events: none;
   transition: transform 0.12s ease, opacity 0.2s ease;
 }
 
-/* Setup Overlay */
+/* SETUP */
 #setupOverlay {
   position: fixed;
   inset: 0;
@@ -81,11 +79,9 @@ html, body {
   max-width: 420px;
   max-height: 80vh;
   overflow-y: auto;
-  animation: fadeIn 0.3s ease;
 }
 
 #setupBox h3 {
-  margin-top: 0;
   color: white;
 }
 
@@ -97,25 +93,30 @@ html, body {
   border: none;
   background: #444;
   color: white;
-  font-size: 14px;
 }
 
 .optionBtn.selected {
   background: #0a84ff;
 }
 
-.fadeOut {
-  animation: fadeOut 0.3s forwards;
+/* DESKTOP HOME BUTTON */
+#homeBtn {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  display: none;
+  z-index: 10000;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes fadeOut {
-  to { opacity: 0; transform: scale(0.95); }
-}
 </style>
 </head>
 
@@ -139,6 +140,8 @@ html, body {
   </div>
 </div>
 
+<button id="homeBtn">Home</button>
+
 <script>
 (async () => {
 
@@ -156,22 +159,38 @@ const osVersions = ["26.0","18.2","17.2","16.2","15.5"];
 const deviceContainer = document.getElementById("deviceOptions");
 const osContainer = document.getElementById("osOptions");
 const overlay = document.getElementById("setupOverlay");
+const iframe = document.getElementById("appetize-iframe");
+const swipeZone = document.getElementById("homeSwipeZone");
+const homeBar = document.getElementById("homeBarVisual");
+const homeBtn = document.getElementById("homeBtn");
 
 let selectedDevice = null;
 let selectedOS = null;
 let session = null;
 
-/* Build Buttons */
+/* DESKTOP DETECT */
+const isDesktop =
+  !('ontouchstart' in window) ||
+  window.matchMedia("(pointer:fine)").matches;
+
+if (isDesktop) {
+  swipeZone.style.display = "none";
+  homeBtn.style.display = "block";
+}
+
+/* BUTTONS */
 devices.forEach(device => {
   const btn = document.createElement("button");
   btn.className = "optionBtn";
   btn.textContent = device;
+
   btn.onclick = () => {
     selectedDevice = device;
     document.querySelectorAll("#deviceOptions .optionBtn")
       .forEach(b => b.classList.remove("selected"));
     btn.classList.add("selected");
   };
+
   deviceContainer.appendChild(btn);
 });
 
@@ -179,24 +198,26 @@ osVersions.forEach(os => {
   const btn = document.createElement("button");
   btn.className = "optionBtn";
   btn.textContent = os;
+
   btn.onclick = () => {
     selectedOS = os;
     document.querySelectorAll("#osOptions .optionBtn")
       .forEach(b => b.classList.remove("selected"));
     btn.classList.add("selected");
   };
+
   osContainer.appendChild(btn);
 });
 
-/* Close overlay */
+/* CLOSE + LAUNCH */
 overlay.addEventListener("click", () => {
   if (selectedDevice && selectedOS) {
-    overlay.classList.add("fadeOut");
-    setTimeout(() => overlay.remove(), 300);
-    loadEmulator(selectedDevice, selectedOS);
+    overlay.remove();
+    load(selectedDevice, selectedOS);
   }
 });
 
+/* KEEP YOUR ORIGINAL STYLE URL */
 function getURL(device, os) {
   return `https://appetize.io/embed/vhqck47rafavf76mxopgws2jie?device=${device}&osVersion=${os}&appearance=dark&audio=true&autoplay=true&scale=auto&centered=true&xdocMsg=true&launchApp=false&screenOnly=true&orientation=portrait`;
 }
@@ -215,45 +236,44 @@ async function waitForSDK() {
   });
 }
 
-async function loadEmulator(device, os) {
-  const iframe = document.getElementById("appetize-iframe");
+async function load(device, os) {
   iframe.src = getURL(device, os);
 
   await waitForSDK();
+
   const client = await window.appetize.getClient("#appetize-iframe");
   client.on("session", s => session = s);
 }
 
-/* Swipe gesture still works */
-const swipeZone = document.getElementById("homeSwipeZone");
-const homeBar = document.getElementById("homeBarVisual");
+/* HOME BUTTON */
+homeBtn.onclick = () => {
+  session?.keypress("HOME");
+};
 
+/* SWIPE HOME */
 let startY = 0;
 let deltaY = 0;
-let startTime = 0;
 
-swipeZone.addEventListener("touchstart", (e) => {
+swipeZone.addEventListener("touchstart", e => {
   startY = e.touches[0].clientY;
-  startTime = Date.now();
   deltaY = 0;
 }, { passive: true });
 
-swipeZone.addEventListener("touchmove", (e) => {
+swipeZone.addEventListener("touchmove", e => {
   deltaY = startY - e.touches[0].clientY;
 
   if (deltaY > 0) {
-    const limitedMove = Math.min(deltaY / 4, 12);
-    homeBar.style.transform =
-      `translateX(-50%) translateY(-${limitedMove}px)`;
+    const move = Math.min(deltaY / 3, 14);
+    homeBar.style.transform = `translateX(-50%) translateY(-${move}px)`;
+    homeBar.style.opacity = "1";
   }
 }, { passive: true });
 
 swipeZone.addEventListener("touchend", () => {
   homeBar.style.transform = "translateX(-50%)";
+  homeBar.style.opacity = "0.7";
 
-  const duration = Date.now() - startTime;
-
-  if (deltaY > 35 && duration < 600) {
+  if (deltaY > 40) {
     session?.keypress("HOME");
   }
 });
