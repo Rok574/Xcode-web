@@ -2,9 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    
-    <!-- Updated JS SDK Loader -->
+    <!-- PWA Fullscreen Meta Tags for iOS Web App Mode -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Appetize Emulator">
+    <title>Appetize Web App</title>
+
+    <!-- Appetize JS SDK v3 Official Loader -->
     <script>
         (function () {
             const n = window, i = document, o = i.getElementsByTagName("script")[0], t = i.createElement("script");
@@ -19,16 +24,17 @@
     </script>
 
     <style>
-        /* Modern 100dvh avoids bottom bar clipping in iOS Web Apps */
+        * { box-sizing: border-box; }
+        
         html, body { 
             margin: 0; 
             padding: 0; 
             width: 100%; 
             height: 100%; 
             height: 100dvh; 
-            background: black; 
+            background: #000; 
             overflow: hidden; 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
         }
 
         #appetizeWrapper { 
@@ -44,9 +50,10 @@
             width: 100%; 
             height: 100%; 
             border: none; 
+            background: #000;
         }
 
-        /* Swipe Zone Fixes */
+        /* CUSTOM SWIPE HOME BAR */
         #homeSwipeZone { 
             position: absolute; 
             bottom: 0; 
@@ -54,42 +61,109 @@
             width: 100%; 
             height: 50px; 
             z-index: 999; 
-            touch-action: none; /* Prevents native webview scrolling */
+            touch-action: none; 
             padding-bottom: env(safe-area-inset-bottom);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
         }
 
         #homeBarVisual { 
-            position: absolute; 
-            bottom: max(8px, env(safe-area-inset-bottom)); 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 110px; 
+            width: 130px; 
             height: 5px; 
             border-radius: 999px; 
-            background: rgba(255, 255, 255, 0.4); 
-            opacity: 0.8; 
+            background: rgba(255, 255, 255, 0.5); 
+            margin-bottom: max(8px, env(safe-area-inset-bottom));
             pointer-events: none; 
-            transition: transform 0.12s ease, opacity 0.2s ease; 
+            transition: transform 0.12s ease, opacity 0.2s ease, background-color 0.2s ease; 
         }
 
-        /* Setup Dialog */
-        #setupOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        #setupBox { background: rgba(30,30,30,0.95); padding: 20px; border-radius: 20px; width: 90%; max-width: 420px; max-height: 80vh; overflow-y: auto; }
-        #setupBox h3 { color: white; margin-top: 15px; margin-bottom: 8px; font-size: 16px; }
+        /* SETUP MODAL OVERLAY */
+        #setupOverlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.75); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 9999; 
+        }
+
+        #setupBox { 
+            background: rgba(30, 30, 30, 0.95); 
+            padding: 24px; 
+            border-radius: 20px; 
+            width: 90%; 
+            max-width: 400px; 
+            max-height: 80vh; 
+            overflow-y: auto; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #setupBox h3 { 
+            color: #fff; 
+            margin-top: 18px; 
+            margin-bottom: 8px; 
+            font-size: 15px; 
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         #setupBox h3:first-of-type { margin-top: 0; }
-        .optionBtn { width: 100%; padding: 10px; margin: 6px 0; border-radius: 12px; border: none; background: #444; color: white; cursor: pointer; font-weight: 500; }
-        .optionBtn.selected { background: #0a84ff; }
-        
-        #homeBtn { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 22px; border-radius: 999px; border: none; background: rgba(255,255,255,0.12); color: white; font-size: 14px; font-weight: 600; backdrop-filter: blur(10px); display: none; z-index: 10000; }
+
+        .optionBtn { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 4px 0; 
+            border-radius: 10px; 
+            border: 1px solid transparent; 
+            background: rgba(255,255,255,0.08); 
+            color: #eee; 
+            cursor: pointer; 
+            font-weight: 500; 
+            font-size: 14px;
+            text-align: left;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .optionBtn.selected { 
+            background: #007aff; 
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* DESKTOP FALLBACK BUTTON */
+        #homeBtn { 
+            position: fixed; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            padding: 10px 24px; 
+            border-radius: 999px; 
+            border: 1px solid rgba(255,255,255,0.2); 
+            background: rgba(40, 40, 40, 0.85); 
+            color: white; 
+            font-size: 14px; 
+            font-weight: 600; 
+            backdrop-filter: blur(10px); 
+            display: none; 
+            z-index: 10000; 
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+
     <div id="setupOverlay">
         <div id="setupBox">
             <h3>Select Session Mode</h3>
             <div id="modeOptions">
                 <button class="optionBtn selected" id="btnNormal">Normal Mode (Unlimited)</button>
-                <button class="optionBtn" id="btnDemo">Demo Mode (Limited Time & needs proxy/unblocker)</button>
+                <button class="optionBtn" id="btnDemo">Demo Mode (Limited Time)</button>
             </div>
             
             <h3>Select iPhone</h3>
@@ -101,7 +175,7 @@
     </div>
 
     <div id="appetizeWrapper">
-        <iframe id="appetize-iframe"></iframe>
+        <iframe id="appetize-iframe" allow="autoplay"></iframe>
         <div id="homeSwipeZone">
             <div id="homeBarVisual"></div>
         </div>
@@ -112,13 +186,12 @@
     <script>
         (async () => {
             const devices = [
-                "iphone16pro","iphone16promax",
-                "iphone15pro","iphone15promax",
-                "iphone14pro","iphone14promax",
-                "iphone13pro","iphone13promax",
-                "iphone12","iphone11pro"
+                "iphone16pro", "iphone16promax",
+                "iphone15pro", "iphone15promax",
+                "iphone14pro", "iphone14promax",
+                "iphone13pro", "iphone12"
             ];
-            const osVersions = ["18.0","17.2","16.2","15.5"];
+            const osVersions = ["18.0", "17.2", "16.2"];
             
             const normalApiKey = "vhqck47rafavf76mxopgws2jie";
             const demoApiKey = "demo_ea5a5c67z2eqszqkb64wu6t6ta";
@@ -137,15 +210,16 @@
             
             let selectedDevice = null;
             let selectedOS = null;
-            let appetizeClient = null;
             let currentSession = null;
 
+            // Desktop detection
             const isDesktop = !('ontouchstart' in window) || window.matchMedia("(pointer:fine)").matches;
             if (isDesktop) {
                 swipeZone.style.display = "none";
                 homeBtn.style.display = "block";
             }
 
+            // Mode selection listeners
             btnNormal.onclick = (e) => {
                 e.stopPropagation();
                 selectedApiKey = normalApiKey;
@@ -159,89 +233,97 @@
                 btnNormal.classList.remove("selected");
             };
 
-            devices.forEach(device => {
-                const btn = document.createElement("button");
-                btn.className = "optionBtn";
-                btn.textContent = device;
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedDevice = device;
-                    document.querySelectorAll("#deviceOptions .optionBtn").forEach(b => b.classList.remove("selected"));
-                    btn.classList.add("selected");
-                    checkAndLaunch();
-                };
-                deviceContainer.appendChild(btn);
-            });
+            // Population helper
+            function populateOptions(items, container, onSelect) {
+                items.forEach(item => {
+                    const btn = document.createElement("button");
+                    btn.className = "optionBtn";
+                    btn.textContent = item;
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        container.querySelectorAll(".optionBtn").forEach(b => b.classList.remove("selected"));
+                        btn.classList.add("selected");
+                        onSelect(item);
+                        checkAndLaunch();
+                    };
+                    container.appendChild(btn);
+                });
+            }
 
-            osVersions.forEach(os => {
-                const btn = document.createElement("button");
-                btn.className = "optionBtn";
-                btn.textContent = os;
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedOS = os;
-                    document.querySelectorAll("#osOptions .optionBtn").forEach(b => b.classList.remove("selected"));
-                    btn.classList.add("selected");
-                    checkAndLaunch();
-                };
-                osContainer.appendChild(btn);
-            });
+            populateOptions(devices, deviceContainer, val => selectedDevice = val);
+            populateOptions(osVersions, osContainer, val => selectedOS = val);
 
             function checkAndLaunch() {
                 if (selectedDevice && selectedOS) {
                     overlay.remove();
-                    load(selectedDevice, selectedOS);
+                    launchEmulator(selectedDevice, selectedOS);
                 }
             }
 
-            /* Clean embed URL per current documentation */
-            function getURL(device, os) {
-                return `https://appetize.io/embed/${selectedApiKey}?device=${device}&osVersion=${os}&appearance=dark&scale=auto&autoplay=true`;
-            }
-
-            async function load(device, os) {
-                iframe.src = getURL(device, os);
-                
-                // Initialize client via the updated window.appetize pattern
-                appetizeClient = await window.appetize.getClient("#appetize-iframe");
-                
-                appetizeClient.on("session", s => {
-                    currentSession = s;
+            // Spec-compliant Appetize Embed URL construction
+            function getEmbedURL(device, os) {
+                const params = new URLSearchParams({
+                    device: device,
+                    osVersion: os,
+                    appearance: "dark",
+                    autoplay: "true",
+                    scale: "auto"
                 });
+                return `https://appetize.io/embed/${selectedApiKey}?${params.toString()}`;
             }
 
-            /* Send Home key via official session API */
-            function triggerHome() {
+            async function launchEmulator(device, os) {
+                iframe.src = getEmbedURL(device, os);
+                
+                try {
+                    // Connect via official window.appetize client SDK
+                    const client = await window.appetize.getClient("#appetize-iframe");
+                    
+                    client.on("session", session => {
+                        currentSession = session;
+                    });
+                } catch (err) {
+                    console.error("Appetize SDK Initialization Error:", err);
+                }
+            }
+
+            // Device Commands: session.keypress("HOME")
+            async function triggerHome() {
                 if (currentSession) {
-                    currentSession.keypress("HOME");
+                    try {
+                        await currentSession.keypress("HOME");
+                    } catch (e) {
+                        console.error("Failed to execute HOME keypress:", e);
+                    }
                 }
             }
 
             homeBtn.onclick = triggerHome;
 
-            /* Touch event listeners fixed for PWA mode */
+            // Touch Handling for Custom Home Swipe Bar
             let startY = 0;
             let deltaY = 0;
 
             swipeZone.addEventListener("touchstart", e => {
                 startY = e.touches[0].clientY;
                 deltaY = 0;
+                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
             }, { passive: false });
 
             swipeZone.addEventListener("touchmove", e => {
-                e.preventDefault(); 
+                e.preventDefault(); // Prevents Safari rubber-banding
                 deltaY = startY - e.touches[0].clientY;
                 if (deltaY > 0) {
-                    const move = Math.min(deltaY / 2.5, 20);
-                    homeBar.style.transform = `translateX(-50%) translateY(-${move}px)`;
-                    homeBar.style.opacity = "1";
+                    const move = Math.min(deltaY / 2.2, 22);
+                    homeBar.style.transform = `translateY(-${move}px)`;
                 }
             }, { passive: false });
 
             swipeZone.addEventListener("touchend", () => {
-                homeBar.style.transform = "translateX(-50%) translateY(0)";
-                homeBar.style.opacity = "0.8";
-                if (deltaY > 30) {
+                homeBar.style.transform = "translateY(0)";
+                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+                
+                if (deltaY > 35) {
                     triggerHome();
                 }
             });
