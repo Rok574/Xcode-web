@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Appetize Emulator">
+    <meta name="apple-mobile-web-app-title" content="Xcode Emulator">
     <title>Appetize Web App</title>
 
     <script>
@@ -65,15 +65,16 @@
             justify-content: center;
         }
 
-        #homeBarVisual { 
-            width: 120px; 
-            height: 3px; 
-            border-radius: 999px; 
-            background: rgba(255, 255, 255, 0.08); /* Almost completely invisible */
-            margin-bottom: 2px; /* Fixed offset at absolute screen bottom */
-            pointer-events: none; 
-            transition: transform 0.12s ease, opacity 0.2s ease, background-color 0.2s ease; 
-        }
+      #homeBarVisual { 
+    width: 120px; 
+    height: 3px; 
+    border-radius: 999px; 
+    background: transparent; /* Changed from rgba(255, 255, 255, 0.08) */
+    opacity: 0; /* Fully invisible */
+    margin-bottom: 2px; 
+    pointer-events: none; 
+    transition: transform 0.12s ease, opacity 0.2s ease, background-color 0.2s ease; 
+}
 
         /* SETUP MODAL OVERLAY */
         #setupOverlay { 
@@ -257,7 +258,7 @@
             function getEmbedURL(device, os) {
                 const params = new URLSearchParams({
                     device: device,
-                    osVersion: os,
+                    osVersion: os, // ios 18 and 26 only.
                     appearance: "dark",
                     autoplay: "true",
                     scale: "auto",
