@@ -51,27 +51,26 @@
             background: #000;
         }
 
-        /* CUSTOM SWIPE HOME BAR */
+        /* CUSTOM STEALTH SWIPE HOME BAR */
         #homeSwipeZone { 
             position: absolute; 
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            height: 60px; 
+            height: 40px; 
             z-index: 999; 
             touch-action: none; 
-            padding-bottom: env(safe-area-inset-bottom);
             display: flex;
             align-items: flex-end;
             justify-content: center;
         }
 
         #homeBarVisual { 
-            width: 135px; 
-            height: 5px; 
+            width: 120px; 
+            height: 3px; 
             border-radius: 999px; 
-            background: rgba(255, 255, 255, 0.7); 
-            margin-bottom: max(10px, env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.08); /* Almost completely invisible */
+            margin-bottom: 2px; /* Fixed offset at absolute screen bottom */
             pointer-events: none; 
             transition: transform 0.12s ease, opacity 0.2s ease, background-color 0.2s ease; 
         }
@@ -180,24 +179,23 @@
     <script>
         (async () => {
             const devices = [
-    // iPhone 17 Series
-    "iphone17", "iphone17air", "iphone17pro", "iphone17promax",
-    // iPhone 16 Series
-    "iphone16", "iphone16plus", "iphone16pro", "iphone16promax",
-    // iPhone 15 Series
-    "iphone15", "iphone15plus", "iphone15pro", "iphone15promax",
-    // iPhone 14 Series
-    "iphone14", "iphone14plus", "iphone14pro", "iphone14promax",
-    // iPhone 13 Series
-    "iphone13mini", "iphone13", "iphone13pro", "iphone13promax",
-    // iPhone 12 Series
-    "iphone12mini", "iphone12", "iphone12pro", "iphone12promax",
-    // iPhone 11 Series
-    "iphone11", "iphone11pro", "iphone11promax"
-];
+                // iPhone 17 Series
+                "iphone17", "iphone17air", "iphone17pro", "iphone17promax",
+                // iPhone 16 Series
+                "iphone16", "iphone16plus", "iphone16pro", "iphone16promax",
+                // iPhone 15 Series
+                "iphone15", "iphone15plus", "iphone15pro", "iphone15promax",
+                // iPhone 14 Series
+                "iphone14", "iphone14plus", "iphone14pro", "iphone14promax",
+                // iPhone 13 Series
+                "iphone13mini", "iphone13", "iphone13pro", "iphone13promax",
+                // iPhone 12 Series
+                "iphone12mini", "iphone12", "iphone12pro", "iphone12promax",
+                // iPhone 11 Series
+                "iphone11", "iphone11pro", "iphone11promax"
+            ];
 
-const osVersions = ["26.0", "18.0", "17.5", "17.2", "16.4", "16.2", "15.7"];
-
+            const osVersions = ["18.0", "17.5", "17.2", "16.4", "16.2", "15.7"];
             
             const normalApiKey = "vhqck47rafavf76mxopgws2jie";
             const demoApiKey = "demo_ea5a5c67z2eqszqkb64wu6t6ta";
@@ -263,7 +261,6 @@ const osVersions = ["26.0", "18.0", "17.5", "17.2", "16.4", "16.2", "15.7"];
                 }
             }
 
-            // Corrected function: screenOnly=true strips the device frame entirely
             function getEmbedURL(device, os) {
                 const params = new URLSearchParams({
                     device: device,
@@ -302,30 +299,32 @@ const osVersions = ["26.0", "18.0", "17.5", "17.2", "16.4", "16.2", "15.7"];
 
             homeBtn.onclick = triggerHome;
 
-            // Touch Handling for Custom Home Swipe Bar
+            // Touch Handling for Stealth Home Swipe Bar
             let startY = 0;
             let deltaY = 0;
 
             swipeZone.addEventListener("touchstart", e => {
                 startY = e.touches[0].clientY;
                 deltaY = 0;
-                homeBar.style.backgroundColor = "rgba(255, 255, 255, 1)";
+                // Lights up slightly on touch for feedback
+                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.6)";
             }, { passive: false });
 
             swipeZone.addEventListener("touchmove", e => {
                 e.preventDefault(); 
                 deltaY = startY - e.touches[0].clientY;
                 if (deltaY > 0) {
-                    const move = Math.min(deltaY / 2, 25);
+                    const move = Math.min(deltaY / 2, 20);
                     homeBar.style.transform = `translateY(-${move}px)`;
                 }
             }, { passive: false });
 
             swipeZone.addEventListener("touchend", () => {
                 homeBar.style.transform = "translateY(0)";
-                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
+                // Fades back to nearly invisible
+                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.08)";
                 
-                if (deltaY > 30) {
+                if (deltaY > 25) {
                     triggerHome();
                 }
             });
