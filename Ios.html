@@ -178,24 +178,17 @@
 
     <script>
         (async () => {
+            // Officially supported Appetize iOS device identifiers
             const devices = [
-                // iPhone 17 Series
-                "iphone17", "iphone17air", "iphone17pro", "iphone17promax",
-                // iPhone 16 Series
-                "iphone16", "iphone16plus", "iphone16pro", "iphone16promax",
-                // iPhone 15 Series
-                "iphone15", "iphone15plus", "iphone15pro", "iphone15promax",
-                // iPhone 14 Series
-                "iphone14", "iphone14plus", "iphone14pro", "iphone14promax",
-                // iPhone 13 Series
-                "iphone13mini", "iphone13", "iphone13pro", "iphone13promax",
-                // iPhone 12 Series
-                "iphone12mini", "iphone12", "iphone12pro", "iphone12promax",
-                // iPhone 11 Series
-                "iphone11", "iphone11pro", "iphone11promax"
+                "iphone17pro", "iphone17promax",
+                "iphone16pro", "iphone16promax",
+                "iphone15pro", "iphone15promax",
+                "iphone14pro", "iphone14promax",
+                "iphone13pro", "iphone13promax",
+                "iphone12", "iphone11pro"
             ];
 
-            const osVersions = ["18.0", "17.5", "17.2", "16.4", "16.2", "15.7"];
+            const osVersions = ["26.0", "18.2", "18.0", "17.2", "16.2", "15.5"];
             
             const normalApiKey = "vhqck47rafavf76mxopgws2jie";
             const demoApiKey = "demo_ea5a5c67z2eqszqkb64wu6t6ta";
@@ -306,7 +299,6 @@
             swipeZone.addEventListener("touchstart", e => {
                 startY = e.touches[0].clientY;
                 deltaY = 0;
-                // Lights up slightly on touch for feedback
                 homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.6)";
             }, { passive: false });
 
@@ -321,7 +313,6 @@
 
             swipeZone.addEventListener("touchend", () => {
                 homeBar.style.transform = "translateY(0)";
-                // Fades back to nearly invisible
                 homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.08)";
                 
                 if (deltaY > 25) {
