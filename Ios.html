@@ -2,14 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- PWA Fullscreen Meta Tags for iOS Web App Mode -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Appetize Emulator">
     <title>Appetize Web App</title>
 
-    <!-- Appetize JS SDK v3 Official Loader -->
     <script>
         (function () {
             const n = window, i = document, o = i.getElementsByTagName("script")[0], t = i.createElement("script");
@@ -34,7 +32,7 @@
             height: 100dvh; 
             background: #000; 
             overflow: hidden; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
         }
 
         #appetizeWrapper { 
@@ -59,7 +57,7 @@
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            height: 50px; 
+            height: 60px; 
             z-index: 999; 
             touch-action: none; 
             padding-bottom: env(safe-area-inset-bottom);
@@ -69,11 +67,11 @@
         }
 
         #homeBarVisual { 
-            width: 130px; 
+            width: 135px; 
             height: 5px; 
             border-radius: 999px; 
-            background: rgba(255, 255, 255, 0.5); 
-            margin-bottom: max(8px, env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.7); 
+            margin-bottom: max(10px, env(safe-area-inset-bottom));
             pointer-events: none; 
             transition: transform 0.12s ease, opacity 0.2s ease, background-color 0.2s ease; 
         }
@@ -82,7 +80,7 @@
         #setupOverlay { 
             position: fixed; 
             inset: 0; 
-            background: rgba(0, 0, 0, 0.75); 
+            background: rgba(0, 0, 0, 0.85); 
             backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
             display: flex; 
@@ -99,7 +97,6 @@
             max-width: 400px; 
             max-height: 80vh; 
             overflow-y: auto; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.1);
         }
 
@@ -110,7 +107,6 @@
             font-size: 15px; 
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         #setupBox h3:first-of-type { margin-top: 0; }
@@ -127,7 +123,6 @@
             font-weight: 500; 
             font-size: 14px;
             text-align: left;
-            transition: background 0.2s, border-color 0.2s;
         }
 
         .optionBtn.selected { 
@@ -136,7 +131,6 @@
             font-weight: 600;
         }
 
-        /* DESKTOP FALLBACK BUTTON */
         #homeBtn { 
             position: fixed; 
             bottom: 20px; 
@@ -188,8 +182,7 @@
             const devices = [
                 "iphone16pro", "iphone16promax",
                 "iphone15pro", "iphone15promax",
-                "iphone14pro", "iphone14promax",
-                "iphone13pro", "iphone12"
+                "iphone14pro", "iphone13pro", "iphone12"
             ];
             const osVersions = ["18.0", "17.2", "16.2"];
             
@@ -212,14 +205,12 @@
             let selectedOS = null;
             let currentSession = null;
 
-            // Desktop detection
             const isDesktop = !('ontouchstart' in window) || window.matchMedia("(pointer:fine)").matches;
             if (isDesktop) {
                 swipeZone.style.display = "none";
                 homeBtn.style.display = "block";
             }
 
-            // Mode selection listeners
             btnNormal.onclick = (e) => {
                 e.stopPropagation();
                 selectedApiKey = normalApiKey;
@@ -233,7 +224,6 @@
                 btnNormal.classList.remove("selected");
             };
 
-            // Population helper
             function populateOptions(items, container, onSelect) {
                 items.forEach(item => {
                     const btn = document.createElement("button");
@@ -260,14 +250,16 @@
                 }
             }
 
-            // Spec-compliant Appetize Embed URL construction
+            // CRITICAL FIX: deviceColor=none removes the phone outline frame graphic
             function getEmbedURL(device, os) {
                 const params = new URLSearchParams({
                     device: device,
                     osVersion: os,
                     appearance: "dark",
                     autoplay: "true",
-                    scale: "auto"
+                    scale: "100",
+                    deviceColor: "none", // Strips outer device frame
+                    centered: "true"
                 });
                 return `https://appetize.io/embed/${selectedApiKey}?${params.toString()}`;
             }
@@ -276,24 +268,21 @@
                 iframe.src = getEmbedURL(device, os);
                 
                 try {
-                    // Connect via official window.appetize client SDK
                     const client = await window.appetize.getClient("#appetize-iframe");
-                    
                     client.on("session", session => {
                         currentSession = session;
                     });
                 } catch (err) {
-                    console.error("Appetize SDK Initialization Error:", err);
+                    console.error("SDK Error:", err);
                 }
             }
 
-            // Device Commands: session.keypress("HOME")
             async function triggerHome() {
                 if (currentSession) {
                     try {
                         await currentSession.keypress("HOME");
                     } catch (e) {
-                        console.error("Failed to execute HOME keypress:", e);
+                        console.error("Home keypress error:", e);
                     }
                 }
             }
@@ -307,23 +296,23 @@
             swipeZone.addEventListener("touchstart", e => {
                 startY = e.touches[0].clientY;
                 deltaY = 0;
-                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                homeBar.style.backgroundColor = "rgba(255, 255, 255, 1)";
             }, { passive: false });
 
             swipeZone.addEventListener("touchmove", e => {
-                e.preventDefault(); // Prevents Safari rubber-banding
+                e.preventDefault(); 
                 deltaY = startY - e.touches[0].clientY;
                 if (deltaY > 0) {
-                    const move = Math.min(deltaY / 2.2, 22);
+                    const move = Math.min(deltaY / 2, 25);
                     homeBar.style.transform = `translateY(-${move}px)`;
                 }
             }, { passive: false });
 
             swipeZone.addEventListener("touchend", () => {
                 homeBar.style.transform = "translateY(0)";
-                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
                 
-                if (deltaY > 35) {
+                if (deltaY > 30) {
                     triggerHome();
                 }
             });
