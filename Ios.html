@@ -3,10 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <!-- FIX 1: Correct Appetize JS SDK script source -->
-    <script src="https://appetize.io/js/appetize.js"></script>
+    
+    <!-- Updated JS SDK Loader -->
+    <script>
+        (function () {
+            const n = window, i = document, o = i.getElementsByTagName("script")[0], t = i.createElement("script");
+            t.src = "https://js.appetize.io/embed.js";
+            t.async = 1;
+            o.parentNode.insertBefore(t, o);
+            const s = new Promise(function (e) { t.onload = function () { e(); }; });
+            n.appetize = {
+                getClient: function (...e) { return s.then(() => n.appetize.getClient(...e)); }
+            };
+        })();
+    </script>
+
     <style>
-        /* FIX 2: Use 100dvh (Dynamic Viewport Height) for proper standalone Web App scaling */
+        /* Modern 100dvh avoids bottom bar clipping in iOS Web Apps */
         html, body { 
             margin: 0; 
             padding: 0; 
@@ -17,7 +30,7 @@
             overflow: hidden; 
             font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
         }
-        
+
         #appetizeWrapper { 
             width: 100%; 
             height: 100dvh; 
@@ -28,31 +41,29 @@
         }
 
         #appetize-iframe { 
-            width: 100%;
+            width: 100%; 
             height: 100%; 
-            aspect-ratio: 9 / 19.5; 
             border: none; 
-            max-width: 100%; 
         }
 
-        /* FIX 3: Added touch-action: none and safe-area adjustments so custom swipes work in Web App mode */
+        /* Swipe Zone Fixes */
         #homeSwipeZone { 
             position: absolute; 
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            height: 60px; 
+            height: 50px; 
             z-index: 999; 
-            touch-action: none; 
+            touch-action: none; /* Prevents native webview scrolling */
             padding-bottom: env(safe-area-inset-bottom);
         }
 
         #homeBarVisual { 
             position: absolute; 
-            bottom: max(12px, env(safe-area-inset-bottom)); 
+            bottom: max(8px, env(safe-area-inset-bottom)); 
             left: 50%; 
             transform: translateX(-50%); 
-            width: 120px; 
+            width: 110px; 
             height: 5px; 
             border-radius: 999px; 
             background: rgba(255, 255, 255, 0.4); 
@@ -61,7 +72,7 @@
             transition: transform 0.12s ease, opacity 0.2s ease; 
         }
 
-        /* SETUP OVERLAY */
+        /* Setup Dialog */
         #setupOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         #setupBox { background: rgba(30,30,30,0.95); padding: 20px; border-radius: 20px; width: 90%; max-width: 420px; max-height: 80vh; overflow-y: auto; }
         #setupBox h3 { color: white; margin-top: 15px; margin-bottom: 8px; font-size: 16px; }
@@ -88,26 +99,26 @@
             <div id="osOptions"></div>
         </div>
     </div>
-    
+
     <div id="appetizeWrapper">
         <iframe id="appetize-iframe"></iframe>
         <div id="homeSwipeZone">
             <div id="homeBarVisual"></div>
         </div>
     </div>
+    
     <button id="homeBtn">Home</button>
 
     <script>
         (async () => {
             const devices = [
-                "iphone17pro","iphone17promax",
                 "iphone16pro","iphone16promax",
                 "iphone15pro","iphone15promax",
                 "iphone14pro","iphone14promax",
                 "iphone13pro","iphone13promax",
                 "iphone12","iphone11pro"
             ];
-            const osVersions = ["18.2","17.2","16.2","15.5"];
+            const osVersions = ["18.0","17.2","16.2","15.5"];
             
             const normalApiKey = "vhqck47rafavf76mxopgws2jie";
             const demoApiKey = "demo_ea5a5c67z2eqszqkb64wu6t6ta";
@@ -126,7 +137,8 @@
             
             let selectedDevice = null;
             let selectedOS = null;
-            let session = null;
+            let appetizeClient = null;
+            let currentSession = null;
 
             const isDesktop = !('ontouchstart' in window) || window.matchMedia("(pointer:fine)").matches;
             if (isDesktop) {
@@ -182,55 +194,32 @@
                 }
             }
 
+            /* Clean embed URL per current documentation */
             function getURL(device, os) {
-                return `https://appetize.io/embed/${selectedApiKey}?device=${device}&osVersion=${os}&appearance=dark&audio=true&autoplay=true&scale=auto&centered=true&xdocMsg=true&launchApp=false&screenOnly=true&orientation=portrait`;
-            }
-
-            async function waitForSDK() {
-                await new Promise(resolve => {
-                    if (window.appetize) resolve();
-                    else {
-                        const i = setInterval(() => {
-                            if (window.appetize) {
-                                clearInterval(i);
-                                resolve();
-                            }
-                        }, 100);
-                    }
-                });
-            }
-
-            async function tryFullscreen() {
-                try {
-                    const el = document.documentElement;
-                    if (document.fullscreenEnabled && !document.fullscreenElement) {
-                        await el.requestFullscreen();
-                    } else if (el.webkitRequestFullscreen) {
-                        el.webkitRequestFullscreen();
-                    }
-                } catch (e) {
-                    console.log("Fullscreen request skipped or blocked:", e);
-                }
+                return `https://appetize.io/embed/${selectedApiKey}?device=${device}&osVersion=${os}&appearance=dark&scale=auto&autoplay=true`;
             }
 
             async function load(device, os) {
                 iframe.src = getURL(device, os);
-                await waitForSDK();
-                try {
-                    const client = await window.appetize.getClient("#appetize-iframe");
-                    client.on("session", s => session = s);
-                } catch(err) {
-                    console.error("SDK initialization error:", err);
-                }
                 
-                tryFullscreen();
+                // Initialize client via the updated window.appetize pattern
+                appetizeClient = await window.appetize.getClient("#appetize-iframe");
+                
+                appetizeClient.on("session", s => {
+                    currentSession = s;
+                });
             }
 
-            homeBtn.onclick = () => {
-                session?.keypress("HOME");
-            };
+            /* Send Home key via official session API */
+            function triggerHome() {
+                if (currentSession) {
+                    currentSession.keypress("HOME");
+                }
+            }
 
-            /* SWIPE EVENT LISTENER FIX */
+            homeBtn.onclick = triggerHome;
+
+            /* Touch event listeners fixed for PWA mode */
             let startY = 0;
             let deltaY = 0;
 
@@ -240,7 +229,7 @@
             }, { passive: false });
 
             swipeZone.addEventListener("touchmove", e => {
-                e.preventDefault(); // Prevents iOS native viewport bounce/scroll
+                e.preventDefault(); 
                 deltaY = startY - e.touches[0].clientY;
                 if (deltaY > 0) {
                     const move = Math.min(deltaY / 2.5, 20);
@@ -253,7 +242,7 @@
                 homeBar.style.transform = "translateX(-50%) translateY(0)";
                 homeBar.style.opacity = "0.8";
                 if (deltaY > 30) {
-                    session?.keypress("HOME");
+                    triggerHome();
                 }
             });
         })();
