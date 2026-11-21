@@ -23,130 +23,187 @@
 
     <style>
         * { box-sizing: border-box; }
-        
-        html, body { 
-            margin: 0; 
-            padding: 0; 
-            width: 100%; 
-            height: 100%; 
-            height: 100dvh; 
-            background: #000; 
-            overflow: hidden; 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background: #000;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        #appetizeWrapper { 
-            width: 100%; 
-            height: 100dvh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            position: relative; 
-        }
-
-        #appetize-iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
+        #appetizeWrapper {
+            width: 100vw;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
             background: #000;
         }
 
-        /* CUSTOM STEALTH SWIPE HOME BAR */
-        #homeSwipeZone { 
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 40px; 
-            z-index: 999; 
-            touch-action: none; 
+        #appetize-iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            outline: none;
+            background: #000;
+            display: block;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        /* INVISIBLE SWIPE ZONE FOR HOME KEYPRESS */
+        #homeSwipeZone {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 44px;
+            z-index: 999;
+            touch-action: none;
             display: flex;
             align-items: flex-end;
             justify-content: center;
+            pointer-events: auto;
+            background: transparent;
         }
 
-      #homeBarVisual { 
-    width: 120px; 
-    height: 3px; 
-    border-radius: 999px; 
-    background: transparent; /* Changed from rgba(255, 255, 255, 0.08) */
-    opacity: 0; /* Fully invisible */
-    margin-bottom: 2px; 
-    pointer-events: none; 
-    transition: transform 0.12s ease, opacity 0.2s ease, background-color 0.2s ease; 
-}
+        #homeBarVisual {
+            width: 128px;
+            height: 4px;
+            border-radius: 999px;
+            background: transparent;
+            opacity: 0;
+            margin-bottom: 6px;
+            pointer-events: none;
+        }
 
         /* SETUP MODAL OVERLAY */
-        #setupOverlay { 
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0, 0, 0, 0.85); 
-            backdrop-filter: blur(20px); 
+        #setupOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 9999; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
         }
 
-        #setupBox { 
-            background: rgba(30, 30, 30, 0.95); 
-            padding: 24px; 
-            border-radius: 20px; 
-            width: 90%; 
-            max-width: 400px; 
-            max-height: 80vh; 
-            overflow-y: auto; 
-            border: 1px solid rgba(255,255,255,0.1);
+        #setupBox {
+            background: rgba(30, 30, 30, 0.95);
+            padding: 24px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 420px;
+            max-height: 84vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        #setupBox h3 { 
-            color: #fff; 
-            margin-top: 18px; 
-            margin-bottom: 8px; 
-            font-size: 15px; 
+        #setupBox h3 {
+            color: #fff;
+            margin-top: 18px;
+            margin-bottom: 8px;
+            font-size: 14px;
             font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         #setupBox h3:first-of-type { margin-top: 0; }
 
-        .optionBtn { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 4px 0; 
-            border-radius: 10px; 
-            border: 1px solid transparent; 
-            background: rgba(255,255,255,0.08); 
-            color: #eee; 
-            cursor: pointer; 
-            font-weight: 500; 
+        .optionBtn {
+            width: 100%;
+            padding: 11px 12px;
+            margin: 4px 0;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background: rgba(255, 255, 255, 0.08);
+            color: #eee;
+            cursor: pointer;
+            font-weight: 500;
             font-size: 14px;
             text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
         }
 
-        .optionBtn.selected { 
-            background: #007aff; 
+        .optionBtn span.sub {
+            font-size: 11px;
+            opacity: 0.65;
+            font-family: monospace;
+        }
+
+        .optionBtn.selected {
+            background: #007aff;
             color: #fff;
             font-weight: 600;
         }
 
-        #homeBtn { 
-            position: fixed; 
-            bottom: 20px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            padding: 10px 24px; 
-            border-radius: 999px; 
-            border: 1px solid rgba(255,255,255,0.2); 
-            background: rgba(40, 40, 40, 0.85); 
-            color: white; 
-            font-size: 14px; 
-            font-weight: 600; 
-            backdrop-filter: blur(10px); 
-            display: none; 
-            z-index: 10000; 
+        .optionBtn.selected span.sub {
+            opacity: 0.95;
+        }
+
+        .customRow {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        #customDeviceInput {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            font-size: 13px;
+            font-family: monospace;
+        }
+
+        #applyCustomBtn {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+            font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
+        }
+
+        #launchBtn {
+            width: 100%;
+            margin-top: 18px;
+            padding: 13px;
+            border-radius: 12px;
+            border: none;
+            background: #34c759;
+            color: #000;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            opacity: 0.45;
+        }
+
+        #launchBtn.ready {
+            opacity: 1;
+        }
+
+        .statusHint {
+            font-size: 12px;
+            color: #bbb;
+            margin-top: 8px;
+            text-align: center;
         }
     </style>
 </head>
@@ -154,67 +211,84 @@
 
     <div id="setupOverlay">
         <div id="setupBox">
-            <h3>Select Session Mode</h3>
+            <h3>1. Select Session Mode</h3>
             <div id="modeOptions">
-                <button class="optionBtn selected" id="btnNormal">Normal Mode (Unlimited)</button>
-                <button class="optionBtn" id="btnDemo">Demo Mode (Limited Time + proxy needed)</button>
+                <button class="optionBtn selected" id="btnNormal" type="button">Normal Mode (Unlimited)</button>
+                <button class="optionBtn" id="btnDemo" type="button">Demo Mode (Limited Time + proxy needed)</button>
             </div>
-            
-            <h3>Select iPhone</h3>
+
+            <h3>2. Select iPhone</h3>
             <div id="deviceOptions"></div>
-            
-            <h3>Select iOS Version</h3>
+            <div class="customRow">
+                <input id="customDeviceInput" type="text" placeholder="Custom device ID (e.g. iphoneduo)">
+                <button id="applyCustomBtn" type="button">Set ID</button>
+            </div>
+
+            <h3>3. Select iOS Version</h3>
             <div id="osOptions"></div>
+
+            <button id="launchBtn" type="button">Select Device &amp; iOS Version</button>
+            <div class="statusHint" id="selectionSummary">No device selected • No iOS version selected</div>
         </div>
     </div>
 
     <div id="appetizeWrapper">
-        <iframe id="appetize-iframe" allow="autoplay"></iframe>
+        <iframe id="appetize-iframe" allow="autoplay; fullscreen"></iframe>
         <div id="homeSwipeZone">
             <div id="homeBarVisual"></div>
         </div>
     </div>
-    
-    <button id="homeBtn">Home</button>
 
     <script>
         (async () => {
-            // Officially supported Appetize iOS device identifiers
+            sessionStorage.removeItem("app_device");
+            sessionStorage.removeItem("app_os");
+
             const devices = [
-                "iphone17pro", "iphone17promax",
-                "iphone16pro", "iphone16promax",
-                "iphone15pro", "iphone15promax",
-                "iphone14pro", "iphone14promax",
-                "iphone13pro", "iphone13promax",
-                "iphone12", "iphone11pro"
+                { label: "iPhone Duo (Foldable)", id: "iphoneduo" },
+                { label: "iPhone 18 Pro Max", id: "iphone18promax" },
+                { label: "iPhone 18 Pro", id: "iphone18pro" },
+                { label: "iPhone 17 Pro Max", id: "iphone17promax" },
+                { label: "iPhone 17 Pro", id: "iphone17pro" },
+                { label: "iPhone 16 Pro Max", id: "iphone16promax" },
+                { label: "iPhone 16 Pro", id: "iphone16pro" },
+                { label: "iPhone 15 Pro Max", id: "iphone15promax" },
+                { label: "iPhone 15 Pro", id: "iphone15pro" },
+                { label: "iPhone 14 Pro Max", id: "iphone14promax" },
+                { label: "iPhone 14 Pro", id: "iphone14pro" },
+                { label: "iPhone 13 Pro Max", id: "iphone13promax" },
+                { label: "iPhone 13 Pro", id: "iphone13pro" },
+                { label: "iPhone 12", id: "iphone12" },
+                { label: "iPhone 11 Pro", id: "iphone11pro" }
             ];
 
-            const osVersions = ["26.0", "18.2", "18.0", "17.2", "16.2", "15.5"];
-            
+            const osVersions = [
+                { label: "iOS 27.2", id: "27.2" },
+                { label: "iOS 26.0", id: "26.0" },
+                { label: "iOS 18.2", id: "18.2" },
+                { label: "iOS 17.2", id: "17.2" }
+            ];
+
             const normalApiKey = "vb567rxjv7zv5dncgts7sy55te";
             const demoApiKey = "demo_ea5a5c67z2eqszqkb64wu6t6ta";
-            let selectedApiKey = normalApiKey; 
-            
+            let selectedApiKey = normalApiKey;
+
             const deviceContainer = document.getElementById("deviceOptions");
             const osContainer = document.getElementById("osOptions");
             const overlay = document.getElementById("setupOverlay");
             const iframe = document.getElementById("appetize-iframe");
             const swipeZone = document.getElementById("homeSwipeZone");
-            const homeBar = document.getElementById("homeBarVisual");
-            const homeBtn = document.getElementById("homeBtn");
-            
+            const customDeviceInput = document.getElementById("customDeviceInput");
+            const applyCustomBtn = document.getElementById("applyCustomBtn");
+            const launchBtn = document.getElementById("launchBtn");
+            const selectionSummary = document.getElementById("selectionSummary");
+
             const btnNormal = document.getElementById("btnNormal");
             const btnDemo = document.getElementById("btnDemo");
-            
+
             let selectedDevice = null;
             let selectedOS = null;
             let currentSession = null;
-
-            const isDesktop = !('ontouchstart' in window) || window.matchMedia("(pointer:fine)").matches;
-            if (isDesktop) {
-                swipeZone.style.display = "none";
-                homeBtn.style.display = "block";
-            }
 
             btnNormal.onclick = (e) => {
                 e.stopPropagation();
@@ -229,49 +303,103 @@
                 btnNormal.classList.remove("selected");
             };
 
+            function updateLaunchState() {
+                selectionSummary.textContent =
+                    `${selectedDevice || "No device selected"} • ${selectedOS ? "iOS " + selectedOS : "No iOS version selected"}`;
+
+                if (selectedDevice && selectedOS) {
+                    launchBtn.classList.add("ready");
+                    launchBtn.textContent = `Launch ${selectedDevice} (iOS ${selectedOS})`;
+                } else {
+                    launchBtn.classList.remove("ready");
+                    launchBtn.textContent = "Select Device & iOS Version";
+                }
+            }
+
             function populateOptions(items, container, onSelect) {
                 items.forEach(item => {
                     const btn = document.createElement("button");
+                    btn.type = "button";
                     btn.className = "optionBtn";
-                    btn.textContent = item;
+                    btn.dataset.val = item.id;
+                    btn.innerHTML = `<span>${item.label}</span><span class="sub">${item.id}</span>`;
                     btn.onclick = (e) => {
                         e.stopPropagation();
                         container.querySelectorAll(".optionBtn").forEach(b => b.classList.remove("selected"));
                         btn.classList.add("selected");
-                        onSelect(item);
-                        checkAndLaunch();
+                        onSelect(item.id);
+                        updateLaunchState();
                     };
                     container.appendChild(btn);
                 });
             }
 
-            populateOptions(devices, deviceContainer, val => selectedDevice = val);
-            populateOptions(osVersions, osContainer, val => selectedOS = val);
+            populateOptions(devices, deviceContainer, val => {
+                selectedDevice = val;
+            });
 
-            function checkAndLaunch() {
-                if (selectedDevice && selectedOS) {
-                    overlay.remove();
-                    launchEmulator(selectedDevice, selectedOS);
+            populateOptions(osVersions, osContainer, val => {
+                selectedOS = val;
+            });
+
+            applyCustomBtn.onclick = (e) => {
+                e.stopPropagation();
+                const raw = customDeviceInput.value.trim().toLowerCase();
+                if (!raw) return;
+                deviceContainer.querySelectorAll(".optionBtn").forEach(b => b.classList.remove("selected"));
+                selectedDevice = raw;
+                updateLaunchState();
+            };
+
+            launchBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (!selectedDevice || !selectedOS) {
+                    updateLaunchState();
+                    return;
                 }
+                overlay.style.display = "none";
+                launchEmulator(selectedDevice, selectedOS);
+            };
+
+            async function endCurrentSession() {
+                if (currentSession) {
+                    try {
+                        await currentSession.end();
+                    } catch (_) {}
+                    currentSession = null;
+                }
+                iframe.src = "about:blank";
             }
+
+            window.addEventListener("pagehide", () => {
+                if (currentSession && typeof currentSession.end === "function") {
+                    try { currentSession.end(); } catch (_) {}
+                }
+            });
 
             function getEmbedURL(device, os) {
                 const params = new URLSearchParams({
                     device: device,
-                    osVersion: os, // ios 18 and 26 only.
+                    osVersion: os,
                     appearance: "dark",
                     autoplay: "true",
                     scale: "auto",
-                    screenOnly: "true", 
+                    screenOnly: "true",
                     centered: "both",
-                    launchApp: "false" // shitty
+                    launchApp: "false",
+                    record: "false"
                 });
+                if (device === "iphoneduo") {
+                    params.set("hinge", "fullyOpen");
+                }
                 return `https://appetize.io/embed/${selectedApiKey}?${params.toString()}`;
             }
 
             async function launchEmulator(device, os) {
+                await endCurrentSession();
+                await new Promise(r => setTimeout(r, 150));
                 iframe.src = getEmbedURL(device, os);
-                
+
                 try {
                     const client = await window.appetize.getClient("#appetize-iframe");
                     client.on("session", session => {
@@ -283,44 +411,44 @@
             }
 
             async function triggerHome() {
-                if (currentSession) {
-                    try {
-                        await currentSession.keypress("HOME");
-                    } catch (e) {
-                        console.error("Home keypress error:", e);
-                    }
+                if (!currentSession) return;
+                try {
+                    await currentSession.keypress("HOME");
+                } catch (e) {
+                    console.error("Home keypress error:", e);
                 }
             }
 
-            homeBtn.onclick = triggerHome;
-
-            // Touch Handling for Stealth Home Swipe Bar
+            // Invisible swipe-up detection in bottom zone: each swipe fires HOME
             let startY = 0;
             let deltaY = 0;
+            let triggeredThisSwipe = false;
 
             swipeZone.addEventListener("touchstart", e => {
                 startY = e.touches[0].clientY;
                 deltaY = 0;
-                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.6)";
+                triggeredThisSwipe = false;
             }, { passive: false });
 
             swipeZone.addEventListener("touchmove", e => {
-                e.preventDefault(); 
+                e.preventDefault();
                 deltaY = startY - e.touches[0].clientY;
-                if (deltaY > 0) {
-                    const move = Math.min(deltaY / 2, 20);
-                    homeBar.style.transform = `translateY(-${move}px)`;
+                if (deltaY > 36 && !triggeredThisSwipe) {
+                    triggeredThisSwipe = true;
+                    triggerHome();
                 }
             }, { passive: false });
 
             swipeZone.addEventListener("touchend", () => {
-                homeBar.style.transform = "translateY(0)";
-                homeBar.style.backgroundColor = "rgba(255, 255, 255, 0.08)";
-                
-                if (deltaY > 25) {
+                if (deltaY > 20 && !triggeredThisSwipe) {
                     triggerHome();
                 }
+                startY = 0;
+                deltaY = 0;
+                triggeredThisSwipe = false;
             });
+
+            updateLaunchState();
         })();
     </script>
 </body>
